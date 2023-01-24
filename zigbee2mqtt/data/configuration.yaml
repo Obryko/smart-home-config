@@ -1,0 +1,32 @@
+homeassistant: true
+permit_join: true
+frontend: true
+mqtt:
+  base_topic: zigbee2mqtt
+  server: mqtt://mosquitto
+serial:
+  port: /dev/ttyUSB0
+advanced:
+  log_level: debug
+  network_key:
+    - 78
+    - 117
+    - 153
+    - 152
+    - 236
+    - 66
+    - 8
+    - 251
+    - 162
+    - 28
+    - 91
+    - 139
+    - 86
+    - 241
+    - 100
+    - 31
+  homeassistant_legacy_entity_attributes: false
+  legacy_api: false
+  legacy_availability_payload: false
+device_options:
+  legacy: false

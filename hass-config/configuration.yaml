@@ -1,0 +1,20 @@
+default_config:
+panel_iframe:
+  configurator:
+    title: Configurator
+    icon: mdi:wrench
+    url: http://hass-configurator:3218/
+    require_admin: true
+  nodered:
+    title: Node-Red
+    icon: mdi:shuffle-variant
+    url: http://nodered:1880/
+    require_admin: true
+  zigbee2mqtt:
+    title: Zigbee2MQTT
+    icon: mdi:shuffle-variant
+    url: http://zigbee2mqtt:9999/
+    require_admin: true
+recorder:
+  db_url: !env_var RECORDER_DB_URL
+  purge_keep_days: 30

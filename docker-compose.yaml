@@ -1,0 +1,89 @@
+version: '3.8'
+services:
+  homeassistant:
+    container_name: homeassistant
+    image: ghcr.io/home-assistant/home-assistant:stable
+    volumes:
+      - ./hass-config:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    ports: 
+      - 8123:8123
+    depends_on:
+      - mariadb
+      - mosquitto
+      - zigbee2mqtt
+    environment: 
+      RECORDER_DB_URL: "mysql://${HA_DB_USERNAME}:${HA_DB_PASSWORD}@mariadb:3306/${HA_DB_NAME}?charset=utf8"
+  mariadb:
+    image: linuxserver/mariadb
+    container_name: mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${ROOT_DB_PASSWORD}
+      MYSQL_DATABASE: ${HA_DB_NAME}
+      MYSQL_USER: ${HA_DB_USERNAME}
+      MYSQL_PASSWORD: ${HA_DB_PASSWORD}
+      PUID: ${PUID}
+      PGID: ${PGID}
+    volumes:
+      - ./mariadb:/config
+    ports:
+      - "3306:3306"
+  nodered:
+    container_name: nodered
+    image: nodered/node-red
+    ports:
+      - "1880:1880"
+    volumes:
+      - ./nodered:/data
+    depends_on:
+      - homeassistant
+      - mosquitto
+    environment:
+      TZ: "Europe/Warsaw"
+    restart: unless-stopped
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - "./mosquitto/config:/mosquitto/config"
+      - "./mosquitto/data:/mosquitto/data"
+      - "./mosquitto/log:/mosquitto/log"
+    environment:
+      - TZ=Europe/Warsaw
+    user: "${PUID}:${PGID}"
+  hass-configurator:
+    image: "causticlab/hass-configurator-docker:latest"
+    container_name: hass-configurator
+    restart: unless-stopped
+    ports:
+      - "3218:3218/tcp"
+    depends_on:
+      - homeassistant
+    volumes:
+      - "./configurator-config:/config"
+      - "./hass-config:/hass-config"
+    user: "${PUID}:${PGID}"
+  zigbee2mqtt:
+    container_name: zigbee2mqtt
+    image: koenkk/zigbee2mqtt:1.29.2
+    volumes:
+      - "./zigbee2mqtt/data:/app/data"
+      - "/run/udev:/run/udev:ro"
+    ports:
+      - "9999:8080"
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+    restart: always
+    environment:
+      - TZ=Europe/Warsaw
+    depends_on:
+      - mosquitto
+    group_add:
+      - dialout
+    user: "${PUID}:${PGID}"
